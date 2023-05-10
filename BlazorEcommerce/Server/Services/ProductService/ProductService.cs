@@ -1,4 +1,5 @@
 ﻿using BlazorEcommerce.Shared;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlazorEcommerce.Server.Services.ProductService
 {
@@ -34,6 +35,18 @@ namespace BlazorEcommerce.Server.Services.ProductService
             var response = new ServiceResponse<List<Product>>()
             {
                 Data = await _dataContext.Products.ToListAsync()
+            };
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<List<Product>>> GetProductsByCategory(string categoryUrl)
+        {
+            var response = new ServiceResponse<List<Product>>
+            {
+                Data = await _dataContext.Products
+                    .Where(p => p.Category.Url.ToLower().Equals(categoryUrl.ToLower()))
+                    .ToListAsync()
             };
 
             return response;
