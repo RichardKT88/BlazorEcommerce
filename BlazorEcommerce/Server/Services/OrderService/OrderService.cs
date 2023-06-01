@@ -6,19 +6,15 @@ namespace BlazorEcommerce.Server.Services.OrderService
     {
         private readonly DataContext _context;
         private readonly ICartService _cartService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        //private readonly IAuthService _authService;
+        private readonly IAuthService _authService;
 
         public OrderService(DataContext context,
             ICartService cartService,
-            IHttpContextAccessor httpContextAccessor)
-        //IAuthService authService)
+            IAuthService authService)
         {
             _context = context;
             _cartService = cartService;
-            _httpContextAccessor = httpContextAccessor;
-            //_authService = authService;
+            _authService = authService;
         }
 
         /* public async Task<ServiceResponse<OrderDetailsResponse>> GetOrderDetails(int orderId)
@@ -61,9 +57,9 @@ namespace BlazorEcommerce.Server.Services.OrderService
              response.Data = orderDetailsResponse;
 
              return response;
-         }
+         }*/
 
-         public async Task<ServiceResponse<List<OrderOverviewResponse>>> GetOrders()
+        public async Task<ServiceResponse<List<OrderOverviewResponse>>> GetOrders()
          {
              var response = new ServiceResponse<List<OrderOverviewResponse>>();
              var orders = await _context.Orders
@@ -89,9 +85,8 @@ namespace BlazorEcommerce.Server.Services.OrderService
              response.Data = orderResponse;
 
              return response;
-         }*/
-        private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier));
-
+         }
+       
         public async Task<ServiceResponse<bool>> PlaceOrder()
         {
             var products = (await _cartService.GetDbCartProducts()).Data;
@@ -109,7 +104,7 @@ namespace BlazorEcommerce.Server.Services.OrderService
 
             var order = new Order
             {
-                UserId = GetUserId(),
+                UserId = _authService.GetUserId(),
                 OrderDate = DateTime.Now,
                 TotalPrice = totalPrice,
                 OrderItems = orderItems
@@ -117,8 +112,8 @@ namespace BlazorEcommerce.Server.Services.OrderService
 
             _context.Orders.Add(order);
 
-            /*_context.CartItems.RemoveRange(_context.CartItems
-                .Where(ci => ci.UserId == GetUserId()));*/
+            _context.CartItems.RemoveRange(_context.CartItems
+                .Where(ci => ci.UserId == _authService.GetUserId()));
 
             await _context.SaveChangesAsync();
 
