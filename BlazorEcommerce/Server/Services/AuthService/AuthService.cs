@@ -1,4 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
@@ -39,6 +40,8 @@ namespace BlazorEcommerce.Server.Services.AuthService
         }
 
         public int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        public string GetUserEmail() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Name);
 
         public async Task<ServiceResponse<string>> Login(string email, string password)
         {
@@ -136,6 +139,11 @@ namespace BlazorEcommerce.Server.Services.AuthService
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
+        }
+
+        public async Task<User> GetUserByEmail(string email)
+        {
+            return await _dataContext.Users.FirstOrDefaultAsync(u => u.Email.Equals(email));
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-namespace BlazorEcommerce.Server.Services.OrderService
+﻿namespace BlazorEcommerce.Server.Services.OrderService
 {
     public class OrderService : IOrderService
     {
@@ -60,36 +58,36 @@ namespace BlazorEcommerce.Server.Services.OrderService
         }
 
         public async Task<ServiceResponse<List<OrderOverviewResponse>>> GetOrders()
-         {
-             var response = new ServiceResponse<List<OrderOverviewResponse>>();
-             var orders = await _context.Orders
-                 .Include(o => o.OrderItems)
-                 .ThenInclude(oi => oi.Product)
-                 .Where(o => o.UserId == _authService.GetUserId())
-                 .OrderByDescending(o => o.OrderDate)
-                 .ToListAsync();
-
-             var orderResponse = new List<OrderOverviewResponse>();
-             orders.ForEach(o => orderResponse.Add(new OrderOverviewResponse
-             {
-                 Id = o.Id,
-                 OrderDate = o.OrderDate,
-                 TotalPrice = o.TotalPrice,
-                 Product = o.OrderItems.Count > 1 ?
-                     $"{o.OrderItems.First().Product.Title} and" +
-                     $" {o.OrderItems.Count - 1} more..." :
-                     o.OrderItems.First().Product.Title,
-                 ProductImageUrl = o.OrderItems.First().Product.ImageUrl
-             }));
-
-             response.Data = orderResponse;
-
-             return response;
-         }
-       
-        public async Task<ServiceResponse<bool>> PlaceOrder()
         {
-            var products = (await _cartService.GetDbCartProducts()).Data;
+            var response = new ServiceResponse<List<OrderOverviewResponse>>();
+            var orders = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Where(o => o.UserId == _authService.GetUserId())
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            var orderResponse = new List<OrderOverviewResponse>();
+            orders.ForEach(o => orderResponse.Add(new OrderOverviewResponse
+            {
+                Id = o.Id,
+                OrderDate = o.OrderDate,
+                TotalPrice = o.TotalPrice,
+                Product = o.OrderItems.Count > 1 ?
+                    $"{o.OrderItems.First().Product.Title} and" +
+                    $" {o.OrderItems.Count - 1} more..." :
+                    o.OrderItems.First().Product.Title,
+                ProductImageUrl = o.OrderItems.First().Product.ImageUrl
+            }));
+
+            response.Data = orderResponse;
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<bool>> PlaceOrder(int userId)
+        {
+            var products = (await _cartService.GetDbCartProducts(userId)).Data;
             decimal totalPrice = 0;
             products.ForEach(product => totalPrice += product.Price * product.Quantity);
 
@@ -104,7 +102,7 @@ namespace BlazorEcommerce.Server.Services.OrderService
 
             var order = new Order
             {
-                UserId = _authService.GetUserId(),
+                UserId = userId,
                 OrderDate = DateTime.Now,
                 TotalPrice = totalPrice,
                 OrderItems = orderItems
@@ -113,7 +111,7 @@ namespace BlazorEcommerce.Server.Services.OrderService
             _context.Orders.Add(order);
 
             _context.CartItems.RemoveRange(_context.CartItems
-                .Where(ci => ci.UserId == _authService.GetUserId()));
+                .Where(ci => ci.UserId == userId));
 
             await _context.SaveChangesAsync();
 
