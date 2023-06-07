@@ -10,11 +10,11 @@
         }
 
         public List<Category> Categories { get; set; } = new List<Category>();
-        //public List<Category> AdminCategories { get; set; } = new List<Category>();
+        public List<Category> AdminCategories { get; set; } = new List<Category>();
 
-        //public event Action OnChange;
+        public event Action OnChange;
 
-      /*  public async Task AddCategory(Category category)
+        public async Task AddCategory(Category category)
         {
             var response = await _http.PostAsJsonAsync("api/Category/admin", category);
             AdminCategories = (await response.Content
@@ -45,7 +45,7 @@
             var response = await _http.GetFromJsonAsync<ServiceResponse<List<Category>>>("api/Category/admin");
             if (response != null && response.Data != null)
                 AdminCategories = response.Data;
-        }*/
+        }
 
         public async Task GetCategories()
         {
@@ -54,13 +54,13 @@
                 Categories = response.Data;
         }
 
-      /*  public async Task UpdateCategory(Category category)
+        public async Task UpdateCategory(Category category)
         {
             var response = await _http.PutAsJsonAsync("api/Category/admin", category);
             AdminCategories = (await response.Content
                 .ReadFromJsonAsync<ServiceResponse<List<Category>>>()).Data;
             await GetCategories();
             OnChange.Invoke();
-        }*/
+        }
     }
 }
